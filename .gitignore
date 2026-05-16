@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Environment variables — never commit API keys
+.env
+.env.local
+.env.*.local
+
+# Webpack build output
+dist/
+
+# Electron user data (notes, projects, settings stored at runtime)
+userData/
+
+# Cached media files copied by pick-audio / pick-image handlers
+audio_*
+img_*
+
+# macOS
+.DS_Store
+.AppleDouble
+._*
+
+# Electron packager / builder output
+out/
+release/
+*.dmg
+*.pkg
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
