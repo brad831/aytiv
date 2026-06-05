@@ -14,6 +14,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveProjects: (d) => ipcRenderer.invoke('save-projects', d),
   getSettings:  ()  => ipcRenderer.invoke('get-settings'),
   saveSettings: (d) => ipcRenderer.invoke('save-settings', d),
+  // ── Workspaces ──────────────────────────────────────────────────────────────
+  getWorkspaces:       ()     => ipcRenderer.invoke('get-workspaces'),
+  saveWorkspaces:      (ws)   => ipcRenderer.invoke('save-workspaces', ws),
+  getActiveWorkspace:  ()     => ipcRenderer.invoke('get-active-workspace'),
+  setActiveWorkspace:  (id)   => ipcRenderer.invoke('set-active-workspace', id),
+  deleteWorkspaceData: (wsId) => ipcRenderer.invoke('delete-workspace-data', wsId),
+  // ── Chat ────────────────────────────────────────────────────────────────────
   sendMessage: (data) => ipcRenderer.send('send-message', data),
   onMessageChunk: (cb) => {
     ipcRenderer.on('message-chunk', (_, data) => cb(data));

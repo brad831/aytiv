@@ -43,8 +43,9 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
 
 /* ── App shell ──────────────────────────────────────────────────────────── */
-.app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-.main-content { margin-top: var(--nav-h); flex: 1; overflow-y: auto; padding-bottom: 48px; }
+/* background on .app (not body) so dark-mode CSS-variable overrides apply */
+.app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: var(--bg); color: var(--text); }
+.main-content { margin-top: var(--nav-h); flex: 1; overflow-y: auto; padding-bottom: 48px; background: var(--bg); }
 
 /* ── Top Nav ────────────────────────────────────────────────────────────── */
 .top-nav {
@@ -110,7 +111,7 @@ body {
 }
 .hero-btn:hover { background: rgba(255,255,255,.28); }
 .hero-btn.primary {
-  background: rgba(255,255,255,.9); color: var(--text); border-color: transparent;
+  background: rgba(255,255,255,.9); color: #1a1a1a; border-color: transparent;
 }
 .hero-btn.primary:hover { background: #fff; }
 
@@ -1358,4 +1359,206 @@ body {
   min-height: 72px; line-height: 1.5; transition: border-color .15s;
 }
 .pv-task-popover-notes:focus { border-color: var(--text-dim); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WORKSPACE SWITCHER
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ws-switcher {
+  position: relative; display: flex; align-items: center;
+  -webkit-app-region: no-drag; flex-shrink: 0;
+}
+.ws-logo-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: none; cursor: pointer; padding: 4px 8px 4px 0;
+  border-radius: var(--radius-sm); transition: background .12s;
+}
+.ws-logo-btn:hover { background: var(--surface2); }
+.ws-caret { font-size: 8px; color: var(--text-muted); margin-left: 3px; opacity: 0.6; }
+
+.ws-dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 600;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+  min-width: 220px; overflow: hidden;
+  padding: 4px 0;
+}
+.ws-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; cursor: pointer; position: relative;
+  transition: background .1s; font-size: 13px; color: var(--text);
+}
+.ws-item:hover { background: var(--surface2); }
+.ws-item-active { background: var(--bg); }
+.ws-item-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-mode-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: #f0f0ee; border: 1px solid var(--border2);
+}
+.ws-mode-dot.dark { background: #1a1a1a; border-color: var(--border2); }
+.ws-active-check { font-size: 11px; color: var(--status-active); flex-shrink: 0; font-weight: 700; }
+.ws-gear-btn {
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  font-size: 12px; padding: 2px 4px; border-radius: 4px;
+  opacity: 0; transition: opacity .12s, background .12s; flex-shrink: 0;
+}
+.ws-item:hover .ws-gear-btn { opacity: 1; }
+.ws-gear-btn:hover { background: var(--bg); color: var(--text-dim); }
+.ws-gear-menu {
+  position: absolute; right: 8px; top: 100%; z-index: 700;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-md);
+  overflow: hidden; min-width: 100px;
+}
+.ws-gear-item {
+  display: block; width: 100%; background: none; border: none; cursor: pointer;
+  padding: 7px 12px; font-family: var(--font-body); font-size: 12px;
+  color: var(--text); text-align: left; transition: background .1s;
+}
+.ws-gear-item:hover { background: var(--surface2); }
+.ws-gear-item.danger { color: var(--status-overdue); }
+.ws-gear-item:disabled { opacity: .35; cursor: default; }
+
+.ws-item-editing,
+.ws-item-confirm {
+  gap: 6px; background: var(--surface2) !important; cursor: default;
+}
+.ws-rename-input {
+  flex: 1; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); padding: 3px 7px; font-size: 12px;
+  font-family: var(--font-body); color: var(--text); outline: none;
+}
+.ws-rename-input:focus { border-color: var(--text-dim); }
+.ws-item-action {
+  background: var(--text); color: #fff; border: none; border-radius: var(--radius-sm);
+  padding: 3px 8px; font-size: 11px; font-weight: 600; cursor: pointer;
+  font-family: var(--font-body); flex-shrink: 0; transition: opacity .12s;
+}
+.ws-item-action:hover { opacity: .82; }
+.ws-item-action.secondary {
+  background: var(--bg); color: var(--text-dim); border: 1px solid var(--border);
+}
+.ws-item-action.danger { background: var(--status-overdue); }
+.ws-delete-warn { flex: 1; font-size: 11px; color: var(--text-dim); }
+
+.ws-new-btn {
+  width: 100%; background: none; border: none; border-top: 1px solid var(--border);
+  padding: 9px 12px; font-family: var(--font-body); font-size: 12px; font-weight: 500;
+  color: var(--text-dim); cursor: pointer; text-align: left; margin-top: 4px;
+  transition: background .1s, color .1s;
+}
+.ws-new-btn:hover { background: var(--surface2); color: var(--text); }
+
+/* ── Workspace creation modal ─────────────────────────────────────────── */
+.ws-create-modal { width: 400px; }
+.ws-modal-label {
+  font-size: 10px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px;
+}
+.ws-modal-name-input {
+  width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg); padding: 8px 12px; font-family: var(--font-body);
+  font-size: 14px; color: var(--text); outline: none; transition: border-color .15s;
+}
+.ws-modal-name-input:focus { border-color: var(--text-dim); }
+.ws-mode-tiles { display: flex; gap: 12px; }
+.ws-mode-tile {
+  flex: 1; border: 2px solid var(--border); border-radius: var(--radius-md);
+  background: var(--bg); cursor: pointer; padding: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.ws-mode-tile:hover { border-color: var(--border2); }
+.ws-mode-tile.active { border-color: var(--status-in_progress); box-shadow: 0 0 0 3px rgba(55,138,221,.12); }
+.ws-mode-preview {
+  width: 100%; height: 72px; border-radius: 6px; overflow: hidden;
+  display: flex; flex-direction: column; gap: 4px; padding: 6px;
+}
+.ws-preview-light { background: #f0f0ee; }
+.ws-preview-dark  { background: #0e0e0e; }
+.ws-prev-nav {
+  height: 8px; border-radius: 3px; flex-shrink: 0;
+}
+.ws-preview-light .ws-prev-nav { background: #ffffff; }
+.ws-preview-dark  .ws-prev-nav { background: #1a1a1a; }
+.ws-prev-card {
+  flex: 1; border-radius: 3px;
+}
+.ws-preview-light .ws-prev-card { background: #ffffff; }
+.ws-preview-dark  .ws-prev-card { background: rgba(255,255,255,0.06); }
+.ws-mode-label { font-size: 12px; font-weight: 600; color: var(--text); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK MODE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.app.dark {
+  --bg:         #0e0e0e;
+  --surface:    #161616;
+  --surface2:   #1e1e1e;
+  --border:     rgba(255,255,255,.08);
+  --border2:    rgba(255,255,255,.14);
+  --text:       #e8e8e6;
+  --text-dim:   rgba(232,232,230,.62);
+  --text-muted: rgba(232,232,230,.36);
+}
+
+/* Primary buttons inverted in dark mode — light bg, dark text for clear contrast */
+.app.dark .btn-send,
+.app.dark .btn-open-chat,
+.app.dark .btn-new-note,
+.app.dark .new-note-save-btn,
+.app.dark .notes-new-btn,
+.app.dark .cal-add-btn,
+.app.dark .add-task-btn,
+.app.dark .pv-inline-add-btn:not(.secondary),
+.app.dark .task-modal-save-btn,
+.app.dark .settings-save-btn,
+.app.dark .new-topic-confirm,
+.app.dark .pd-btn.primary,
+.app.dark .ws-item-action:not(.secondary):not(.danger) {
+  background: rgba(255,255,255,.85);
+  color: #0e0e0e;
+  border-color: transparent;
+}
+
+.app.dark .nav-logo-mark {
+  background: rgba(255,255,255,.85);
+  color: #0e0e0e;
+}
+
+.app.dark .message-user .message-body {
+  background: rgba(255,255,255,.08);
+  color: #e8e8e6;
+}
+
+.app.dark .topic-pill.active {
+  background: rgba(255,255,255,.14);
+  color: #e8e8e6;
+  border-color: rgba(255,255,255,.2);
+}
+
+.app.dark .pv-filter-tab.active {
+  background: rgba(255,255,255,.14);
+  color: #e8e8e6;
+  border-color: rgba(255,255,255,.2);
+}
+
+.app.dark .cal-view-btn.active {
+  background: rgba(255,255,255,.1);
+  color: #e8e8e6;
+  box-shadow: none;
+}
+
+.app.dark .project-card.active-project {
+  border-color: rgba(55,138,221,.5);
+}
+
+.app.dark .hero-header {
+  background: linear-gradient(135deg, #0a1929 0%, #050d14 100%);
+}
+
+.app.dark .pv-album-placeholder {
+  background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
+}
 .pv-task-popover-notes::placeholder { color: var(--text-muted); }

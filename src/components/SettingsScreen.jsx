@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
+import ThemeTiles from './ThemeTiles';
 
-export default function SettingsScreen({ settings, onSave }) {
+export default function SettingsScreen({ settings, onSave, currentMode, onModeChange }) {
   const [local, setLocal] = useState({ ...settings });
   const [newTopic, setNewTopic] = useState('');
   const fileRef = useRef(null);
@@ -28,6 +29,11 @@ export default function SettingsScreen({ settings, onSave }) {
       <p className="screen-sub">Customize your Copilot experience</p>
 
       <form className="settings-form" onSubmit={e => { e.preventDefault(); onSave(local); }}>
+        <div className="settings-field">
+          <label>Theme</label>
+          <ThemeTiles value={currentMode || 'light'} onChange={onModeChange} />
+        </div>
+
         <div className="settings-field">
           <label>Your name</label>
           <input className="settings-input" value={local.userName || ''} onChange={e => setLocal(l => ({ ...l, userName: e.target.value }))} placeholder="Saint" />

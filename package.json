@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",
+    "@supabase/supabase-js": "^2.107.0",
     "dotenv": "^16.4.5",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",
@@ -35,7 +37,9 @@
     "productName": "Copilot",
     "mac": {
       "target": "dmg",
-      "arch": ["arm64"],
+      "arch": [
+        "arm64"
+      ],
       "extendInfo": {
         "NSMicrophoneUsageDescription": "Copilot needs microphone access for voice input.",
         "NSScreenCaptureUsageDescription": "Copilot needs screen recording access to analyze your Ableton session."

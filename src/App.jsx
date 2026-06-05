@@ -7,6 +7,7 @@ import NotesScreen from './components/NotesScreen';
 import SettingsScreen from './components/SettingsScreen';
 import TaskModal from './components/TaskModal';
 import ProjectView from './components/ProjectView';
+import WorkspaceModal from './components/WorkspaceModal';
 
 const DEFAULT_SETTINGS = {
   heroImage: null,
@@ -26,23 +27,36 @@ export default function App() {
   const [highlightNoteId, setHighlightNoteId]       = useState(null);
   const [expandedTaskInfo, setExpandedTaskInfo]     = useState(null);
   const [previousScreen, setPreviousScreen]         = useState(null);
+
+  // ── Workspace state ────────────────────────────────────────────────────────
+  const [workspaces, setWorkspaces]           = useState([]);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState('default');
+  const [showWsModal, setShowWsModal]         = useState(false);
+
   const floatingChatRef  = useRef(null);
   const mainContentRef   = useRef(null);
 
-  // ── Scroll to top on navigation ───────────────────────────────────────
+  // ── Scroll to top on navigation ───────────────────────────────────────────
   useEffect(() => {
     if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
   }, [screen, activeProjectId]);
 
-  // ── Load all data on mount ─────────────────────────────────────────────
+  // ── Load all data on mount ────────────────────────────────────────────────
   useEffect(() => {
     Promise.all([
       window.electronAPI.getApiKey(),
+      window.electronAPI.getWorkspaces(),
+      window.electronAPI.getActiveWorkspace(),
       window.electronAPI.getNotes(),
       window.electronAPI.getProjects(),
       window.electronAPI.getSettings(),
-    ]).then(([key, n, p, s]) => {
+    ]).then(([key, wsList, activeId, n, p, s]) => {
       setApiKey(key || '');
+      const allWs = Array.isArray(wsList) && wsList.length > 0
+        ? wsList
+        : [{ id: 'default', name: 'My workspace', mode: 'light', createdAt: new Date().toISOString() }];
+      setWorkspaces(allWs);
+      setActiveWorkspaceId(activeId || allWs[0].id);
       setNotes(Array.isArray(n) ? n : []);
       const projs = Array.isArray(p) ? p : [];
       setProjects(projs);
@@ -53,7 +67,64 @@ export default function App() {
     });
   }, []);
 
-  // ── Persistence helpers ────────────────────────────────────────────────
+  // ── Workspace management ──────────────────────────────────────────────────
+  const switchWorkspace = async (wsId) => {
+    await window.electronAPI.setActiveWorkspace(wsId);
+    setActiveWorkspaceId(wsId);
+    setScreen('dashboard');
+    setActiveProjectId(null);
+    setChatOpen(false);
+    setExpandedTaskInfo(null);
+    const [n, p, s] = await Promise.all([
+      window.electronAPI.getNotes(),
+      window.electronAPI.getProjects(),
+      window.electronAPI.getSettings(),
+    ]);
+    setNotes(Array.isArray(n) ? n : []);
+    const projs = Array.isArray(p) ? p : [];
+    setProjects(projs);
+    setSettings(s ? { ...DEFAULT_SETTINGS, ...s } : DEFAULT_SETTINGS);
+    const first = projs.find(x => x.status === 'active' || x.status === 'in_progress') || projs[0];
+    setActiveProjectId(first?.id || null);
+  };
+
+  const createWorkspace = async (name, mode) => {
+    const newWs = { id: `ws_${Date.now()}`, name, mode, createdAt: new Date().toISOString() };
+    const updated = [...workspaces, newWs];
+    await window.electronAPI.saveWorkspaces(updated);
+    setWorkspaces(updated);
+    setShowWsModal(false);
+    await switchWorkspace(newWs.id);
+  };
+
+  const renameWorkspace = async (wsId, newName) => {
+    const updated = workspaces.map(w => w.id === wsId ? { ...w, name: newName } : w);
+    setWorkspaces(updated);
+    await window.electronAPI.saveWorkspaces(updated);
+  };
+
+  const handleWorkspaceModeChange = async (mode) => {
+    const updated = workspaces.map(w => w.id === activeWorkspaceId ? { ...w, mode } : w);
+    setWorkspaces(updated);
+    await window.electronAPI.saveWorkspaces(updated);
+  };
+
+  const deleteWorkspace = async (wsId) => {
+    if (workspaces.length <= 1) return;
+    const updated = workspaces.filter(w => w.id !== wsId);
+    await window.electronAPI.saveWorkspaces(updated);
+    await window.electronAPI.deleteWorkspaceData(wsId);
+    setWorkspaces(updated);
+    if (activeWorkspaceId === wsId) {
+      await switchWorkspace(updated[0].id);
+    }
+  };
+
+  // ── Dark mode ─────────────────────────────────────────────────────────────
+  const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
+  const isDark = activeWorkspace?.mode === 'dark';
+
+  // ── Persistence helpers ───────────────────────────────────────────────────
   const saveProjects = async (updated) => {
     setProjects(updated);
     await window.electronAPI.saveProjects(updated);
@@ -64,7 +135,7 @@ export default function App() {
     await window.electronAPI.saveSettings(s);
   };
 
-  // ── Note CRUD ──────────────────────────────────────────────────────────
+  // ── Note CRUD ─────────────────────────────────────────────────────────────
   const handleSaveNote = async (payload) => {
     const updated = await window.electronAPI.saveNote(payload);
     setNotes(Array.isArray(updated) ? updated : []);
@@ -80,7 +151,7 @@ export default function App() {
     setNotes(Array.isArray(updated) ? updated : []);
   };
 
-  // ── Project mutations ──────────────────────────────────────────────────
+  // ── Project mutations ─────────────────────────────────────────────────────
   const handleProgressChange = (id, value) =>
     saveProjects(projects.map(p => p.id === id ? { ...p, progress: value } : p));
 
@@ -153,7 +224,7 @@ export default function App() {
     saveProjects(projects.map(p => p.id === projectId ? { ...p, ...changes } : p));
   };
 
-  // ── Chat open/close ────────────────────────────────────────────────────
+  // ── Chat open/close ───────────────────────────────────────────────────────
   const handleOpenChat = (projectId, quickAsk) => {
     if (projectId) setActiveProjectId(projectId);
     setChatOpen(true);
@@ -176,7 +247,7 @@ export default function App() {
     setTimeout(() => floatingChatRef.current?.triggerCapture?.(), 150);
   };
 
-  // ── Topics ─────────────────────────────────────────────────────────────
+  // ── Topics ────────────────────────────────────────────────────────────────
   const handleAddTopic = (name) => {
     const updated = { ...settings, topics: [...(settings.topics || []), name] };
     saveSettings(updated);
@@ -185,7 +256,7 @@ export default function App() {
   const topics = settings.topics || DEFAULT_SETTINGS.topics;
 
   return (
-    <div className="app">
+    <div className={`app${isDark ? ' dark' : ''}`}>
       <TopNav
         activeScreen={screen}
         onNavigate={setScreen}
@@ -193,6 +264,12 @@ export default function App() {
         projectViewData={screen === 'project-view' ? projects.find(p => p.id === activeProjectId) : null}
         onProjectProgressChange={handleProgressChange}
         onUpdateProject={handleUpdateProject}
+        workspaces={workspaces}
+        activeWorkspaceId={activeWorkspaceId}
+        onSwitchWorkspace={switchWorkspace}
+        onNewWorkspace={() => setShowWsModal(true)}
+        onRenameWorkspace={renameWorkspace}
+        onDeleteWorkspace={deleteWorkspace}
       />
 
       <div className="main-content" ref={mainContentRef}>
@@ -270,7 +347,12 @@ export default function App() {
         )}
 
         {screen === 'settings' && (
-          <SettingsScreen settings={settings} onSave={saveSettings} />
+          <SettingsScreen
+            settings={settings}
+            onSave={saveSettings}
+            currentMode={activeWorkspace?.mode || 'light'}
+            onModeChange={handleWorkspaceModeChange}
+          />
         )}
       </div>
 
@@ -287,6 +369,13 @@ export default function App() {
           />
         );
       })()}
+
+      {showWsModal && (
+        <WorkspaceModal
+          onClose={() => setShowWsModal(false)}
+          onCreate={createWorkspace}
+        />
+      )}
 
       <FloatingChat
         ref={floatingChatRef}

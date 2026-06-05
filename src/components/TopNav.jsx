@@ -20,9 +20,100 @@ const STATUS_OPTIONS = [
 
 const LINKS = ['Dashboard', 'Projects', 'Notes', 'Settings'];
 
+function WorkspaceSwitcher({ workspaces, activeWorkspaceId, onSwitch, onNew, onRename, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const [menuWsId, setMenuWsId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const ref = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const h = e => { if (!ref.current?.contains(e.target)) { setOpen(false); setMenuWsId(null); } };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
+
+  return (
+    <div className="ws-switcher" ref={ref} style={{ paddingLeft: 76 }}>
+      <button className="ws-logo-btn" onClick={() => setOpen(o => !o)}>
+        <div className="nav-logo-mark">CP</div>
+        <span className="nav-logo-word">COPILOT</span>
+        <span className="ws-caret">{open ? '▴' : '▾'}</span>
+      </button>
+
+      {open && (
+        <div className="ws-dropdown">
+          {workspaces.map(ws => {
+            if (editingId === ws.id) {
+              return (
+                <div key={ws.id} className="ws-item ws-item-editing">
+                  <input
+                    className="ws-rename-input"
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    autoFocus
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') { onRename(ws.id, editName.trim() || ws.name); setEditingId(null); }
+                      if (e.key === 'Escape') setEditingId(null);
+                    }}
+                  />
+                  <button className="ws-item-action" onClick={() => { onRename(ws.id, editName.trim() || ws.name); setEditingId(null); }}>Save</button>
+                  <button className="ws-item-action secondary" onClick={() => setEditingId(null)}>✕</button>
+                </div>
+              );
+            }
+            if (confirmDeleteId === ws.id) {
+              return (
+                <div key={ws.id} className="ws-item ws-item-confirm">
+                  <span className="ws-delete-warn">Delete "{ws.name}"?</span>
+                  <button className="ws-item-action danger" onClick={() => { onDelete(ws.id); setConfirmDeleteId(null); }}>Delete</button>
+                  <button className="ws-item-action secondary" onClick={() => setConfirmDeleteId(null)}>Cancel</button>
+                </div>
+              );
+            }
+            return (
+              <div
+                key={ws.id}
+                className={`ws-item${ws.id === activeWorkspaceId ? ' ws-item-active' : ''}`}
+                onClick={() => { if (menuWsId !== ws.id) { onSwitch(ws.id); setOpen(false); setMenuWsId(null); } }}
+              >
+                <span className={`ws-mode-dot${ws.mode === 'dark' ? ' dark' : ''}`} />
+                <span className="ws-item-name">{ws.name}</span>
+                {ws.id === activeWorkspaceId && <span className="ws-active-check">✓</span>}
+                <button
+                  className="ws-gear-btn"
+                  title="Rename or delete"
+                  onClick={e => { e.stopPropagation(); setMenuWsId(id => id === ws.id ? null : ws.id); }}
+                >⚙</button>
+                {menuWsId === ws.id && (
+                  <div className="ws-gear-menu" onClick={e => e.stopPropagation()}>
+                    <button className="ws-gear-item" onClick={() => { setEditName(ws.name); setEditingId(ws.id); setMenuWsId(null); }}>Rename</button>
+                    <button
+                      className="ws-gear-item danger"
+                      disabled={workspaces.length <= 1}
+                      onClick={() => { setConfirmDeleteId(ws.id); setMenuWsId(null); }}
+                    >Delete</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <button className="ws-new-btn" onClick={() => { setOpen(false); onNew(); }}>
+            + New workspace
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TopNav({
   activeScreen, onNavigate,
   onBack, projectViewData, onProjectProgressChange, onUpdateProject,
+  workspaces, activeWorkspaceId, onSwitchWorkspace, onNewWorkspace, onRenameWorkspace, onDeleteWorkspace,
 }) {
   const [localProgress, setLocalProgress] = useState(projectViewData?.progress ?? 0);
   const [editingName,   setEditingName]   = useState(false);
@@ -64,10 +155,14 @@ export default function TopNav({
     const label = STATUS_LABELS[projectViewData.status] || projectViewData.status;
     return (
       <nav className="top-nav">
-        <div className="nav-logo" style={{ paddingLeft: 76 }}>
-          <div className="nav-logo-mark">CP</div>
-          <span className="nav-logo-word">COPILOT</span>
-        </div>
+        <WorkspaceSwitcher
+          workspaces={workspaces || []}
+          activeWorkspaceId={activeWorkspaceId}
+          onSwitch={onSwitchWorkspace}
+          onNew={onNewWorkspace}
+          onRename={onRenameWorkspace}
+          onDelete={onDeleteWorkspace}
+        />
         <button className="nav-back-btn" onClick={onBack}>← Back</button>
 
         <div className="pv-topnav-center" style={{ WebkitAppRegion: 'no-drag' }}>
@@ -134,10 +229,14 @@ export default function TopNav({
 
   return (
     <nav className="top-nav">
-      <div className="nav-logo">
-        <div className="nav-logo-mark">CP</div>
-        <span className="nav-logo-word">COPILOT</span>
-      </div>
+      <WorkspaceSwitcher
+        workspaces={workspaces || []}
+        activeWorkspaceId={activeWorkspaceId}
+        onSwitch={onSwitchWorkspace}
+        onNew={onNewWorkspace}
+        onRename={onRenameWorkspace}
+        onDelete={onDeleteWorkspace}
+      />
       <div className="nav-links">
         {LINKS.map(l => (
           <button
