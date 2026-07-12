@@ -20,6 +20,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getActiveWorkspace:  ()     => ipcRenderer.invoke('get-active-workspace'),
   setActiveWorkspace:  (id)   => ipcRenderer.invoke('set-active-workspace', id),
   deleteWorkspaceData: (wsId) => ipcRenderer.invoke('delete-workspace-data', wsId),
+  // ── Dev tools (dev/staging only) ────────────────────────────────────────────
+  getEnv:             ()  => ipcRenderer.invoke('get-env'),
+  getConversationLog: ()  => ipcRenderer.invoke('get-conversation-log'),
   // ── Chat ────────────────────────────────────────────────────────────────────
   sendMessage: (data) => ipcRenderer.send('send-message', data),
   onMessageChunk: (cb) => {

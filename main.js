@@ -239,6 +239,9 @@ ipcMain.handle('set-active-workspace', (_, id) => {
   return id;
 });
 
+ipcMain.handle('get-env', () => ENV);
+ipcMain.handle('get-conversation-log', async () => db.getConversationLog());
+
 ipcMain.handle('delete-workspace-data', async (_, wsId) => {
   await db.deleteWorkspaceData(wsId);
   return true;

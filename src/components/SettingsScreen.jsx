@@ -1,10 +1,18 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ThemeTiles from './ThemeTiles';
+import DevLogPanel from './DevLogPanel';
 
 export default function SettingsScreen({ settings, onSave, currentMode, onModeChange }) {
   const [local, setLocal] = useState({ ...settings });
   const [newTopic, setNewTopic] = useState('');
+  const [env, setEnv] = useState(null);
   const fileRef = useRef(null);
+
+  useEffect(() => {
+    window.electronAPI.getEnv().then(setEnv);
+  }, []);
+
+  const isDevMode = env === 'development' || env === 'staging';
 
   const handleImage = e => {
     const file = e.target.files?.[0];
@@ -73,6 +81,8 @@ export default function SettingsScreen({ settings, onSave, currentMode, onModeCh
 
         <button type="submit" className="settings-save-btn">Save settings</button>
       </form>
+
+      {isDevMode && <DevLogPanel />}
     </div>
   );
 }
