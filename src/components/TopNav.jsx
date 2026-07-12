@@ -39,8 +39,8 @@ function WorkspaceSwitcher({ workspaces, activeWorkspaceId, onSwitch, onNew, onR
   return (
     <div className="ws-switcher" ref={ref} style={{ paddingLeft: 76 }}>
       <button className="ws-logo-btn" onClick={() => setOpen(o => !o)}>
-        <div className="nav-logo-mark">CP</div>
-        <span className="nav-logo-word">COPILOT</span>
+        <div className="nav-logo-mark">AY</div>
+        <span className="nav-logo-word">AYTIV</span>
         <span className="ws-caret">{open ? '▴' : '▾'}</span>
       </button>
 

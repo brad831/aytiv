@@ -3,7 +3,7 @@
  * Run once to copy all local JSON data into Supabase.
  *
  * Usage:
- *   cd ~/projects/copilot
+ *   cd ~/projects/aytiv
  *   node scripts/migrate.js
  *
  * Safe to re-run — uses upsert, so nothing gets duplicated.
@@ -22,7 +22,7 @@ const db = require('../lib/db');
 db.init(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 // On macOS the Electron userData folder is ~/Library/Application Support/<appName>
-const USER_DATA = path.join(os.homedir(), 'Library', 'Application Support', 'copilot');
+const USER_DATA = path.join(os.homedir(), 'Library', 'Application Support', 'Aytiv');
 
 const DEFAULT_SETTINGS = {
   heroImage: null,
@@ -44,7 +44,7 @@ function wsDataPath(type, wsId) {
 }
 
 async function run() {
-  console.log('\n🚀  Copilot → Supabase migration\n');
+  console.log('\n🚀  AYTIV → Supabase migration\n');
 
   // 1. Load workspaces
   const workspaces = readJson(

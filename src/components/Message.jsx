@@ -45,7 +45,7 @@ export default function Message({ message, onSave, topics }) {
   return (
     <div className={`message ${isUser ? 'message-user' : 'message-assistant'}`}>
       <div className="message-header">
-        <span className="message-role">{isUser ? 'YOU' : 'COPILOT'}</span>
+        <span className="message-role">{isUser ? 'YOU' : 'AYTIV'}</span>
         {!isUser && !saved && (
           <button className="btn-save-note" onClick={handleSaveClick} title="Save to notes">
             Save

@@ -26,7 +26,7 @@ export default function SettingsScreen({ settings, onSave, currentMode, onModeCh
   return (
     <div className="screen">
       <h1 className="screen-title">Settings</h1>
-      <p className="screen-sub">Customize your Copilot experience</p>
+      <p className="screen-sub">Customize your AYTIV experience</p>
 
       <form className="settings-form" onSubmit={e => { e.preventDefault(); onSave(local); }}>
         <div className="settings-field">

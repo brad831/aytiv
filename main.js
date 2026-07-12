@@ -1,13 +1,30 @@
-const { app, BrowserWindow, ipcMain, desktopCapturer, systemPreferences, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, desktopCapturer, dialog } = require('electron');
 const path = require('path');
 const fs   = require('fs');
 const { pathToFileURL } = require('url');
 
 // ── Load .env ─────────────────────────────────────────────────────────────────
-require('dotenv').config({ path: path.join(app.getAppPath(), '.env') });
-if (!process.env.ANTHROPIC_API_KEY) {
+// Picks .env.development / .env.staging / .env.production based on NODE_ENV.
+// Falls back to plain .env so the app still works if only .env exists.
+(function loadEnv() {
+  const env = process.env.NODE_ENV || 'development';
+  const roots = [app.getAppPath(), __dirname].filter((v, i, a) => a.indexOf(v) === i);
+
+  for (const root of roots) {
+    const r = require('dotenv').config({ path: path.join(root, `.env.${env}`) });
+    if (!r.error) {
+      console.log(`[env] Loaded .env.${env} from ${root}`);
+      return;
+    }
+  }
+
+  // Fall back to plain .env
   require('dotenv').config({ path: path.join(__dirname, '.env') });
-}
+  console.log(`[env] .env.${env} not found — loaded fallback .env`);
+})();
+
+const ENV = process.env.NODE_ENV || 'development';
+console.log(`[env] Environment: ${ENV}`);
 
 // ── Supabase data layer ───────────────────────────────────────────────────────
 const db = require('./lib/db');
@@ -115,10 +132,6 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
-  if (process.platform === 'darwin') {
-    try { await systemPreferences.askForMediaAccess('microphone'); } catch (_) {}
-  }
-
   currentWsId = readActiveWsId();
 
   // ── One-time migration: local JSON → Supabase ─────────────────────────────
@@ -232,7 +245,7 @@ ipcMain.handle('delete-workspace-data', async (_, wsId) => {
 });
 
 // ── IPC: Chat (streaming) ─────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are Copilot, a session engineer and mixing assistant sitting right next to the producer. You have deep knowledge of Ableton Live Suite and the Waves plugin suite.
+const SYSTEM_PROMPT = `You are AYTIV, a session engineer and mixing assistant sitting right next to the producer. You have deep knowledge of Ableton Live Suite and the Waves plugin suite.
 
 How you communicate:
 - Talk like a knowledgeable producer sitting next to them — direct, practical, never condescending

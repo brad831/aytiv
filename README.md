@@ -1,12 +1,12 @@
-# Copilot — AI Mixing Companion
+# AYTIV — AI Creative Partner
 
-A dark, minimal desktop app that sits alongside Ableton Live and gives you a session engineer in your corner.
+A desktop app that sits alongside your creative work and gives you an AI partner in your corner.
 
 ## Setup
 
 **1. Install dependencies**
 ```bash
-cd ~/projects/copilot
+cd ~/projects/aytiv
 npm install
 ```
 
@@ -45,7 +45,7 @@ Webpack builds the React app, then Electron launches. Both run together via `con
 | **Save notes** | Click **Save** on any AI response |
 | **Notes panel** | Click **NOTES** in the header to open/close |
 
-Notes are saved to `~/Library/Application Support/copilot/notes.json` and persist between sessions.
+Notes are saved to `~/Library/Application Support/Aytiv/notes.json` and persist between sessions.
 
 ---
 
@@ -58,7 +58,7 @@ Grant Screen Recording permission to your terminal app in System Preferences →
 Microphone permission should prompt automatically. If not, add it manually in System Preferences → Privacy & Security → Microphone.
 
 **API errors**  
-Check that your `.env` file is in the `copilot/` root directory and the key starts with `sk-ant-`.
+Check that your `.env` file is in the `aytiv/` root directory and the key starts with `sk-ant-`.
 
 ---
 

@@ -1,7 +1,7 @@
 {
-  "name": "copilot",
+  "name": "aytiv",
   "version": "1.0.0",
-  "description": "AI mixing companion for Ableton Live",
+  "description": "AI creative partner for people building something that matters",
   "main": "main.js",
   "scripts": {
     "start": "concurrently -k \"npm run build:watch\" \"npm run electron:start\"",
@@ -33,16 +33,16 @@
     "webpack-cli": "^5.1.4"
   },
   "build": {
-    "appId": "co.bradfrere.copilot",
-    "productName": "Copilot",
+    "appId": "co.bradfrere.aytiv",
+    "productName": "Aytiv",
     "mac": {
       "target": "dmg",
       "arch": [
         "arm64"
       ],
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "Copilot needs microphone access for voice input.",
-        "NSScreenCaptureUsageDescription": "Copilot needs screen recording access to analyze your Ableton session."
+        "NSMicrophoneUsageDescription": "AYTIV needs microphone access for voice input.",
+        "NSScreenCaptureUsageDescription": "AYTIV needs screen recording access to analyze your Ableton session."
       }
     },
     "files": [

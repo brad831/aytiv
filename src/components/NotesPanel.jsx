@@ -15,7 +15,7 @@ export default function NotesPanel({ notes, onDelete }) {
 
       {notes.length === 0 ? (
         <div className="notes-empty">
-          No notes yet. Click <strong>Save</strong> on any Copilot response to save it here.
+          No notes yet. Click <strong>Save</strong> on any AYTIV response to save it here.
         </div>
       ) : (
         <div className="notes-list">

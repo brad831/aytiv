@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════
--- COPILOT — Supabase Schema
+-- AYTIV — Supabase Schema
 -- Run this once in the Supabase SQL Editor (supabase.com → SQL Editor)
 -- ═══════════════════════════════════════════════════════════════════
 
